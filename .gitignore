@@ -1,0 +1,25 @@
+# Python bytecode
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Django specific
+db.sqlite3
+/static/
+/media/
+
+# Environment variables
+.env
+
+# Django migrations
+*/migrations/*.py
+*/migrations/*.pyc
+
+# Logs
+*.log
+
+# Virtual environment
+env/
+.env/
+
