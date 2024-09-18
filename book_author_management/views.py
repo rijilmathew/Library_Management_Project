@@ -53,12 +53,12 @@ class AuthorRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         author = self.get_object()
-        # Check if the author is associated with any books
         if author.books.exists():
             return Response({'error': 'Cannot delete author with associated books.'}, status=status.HTTP_400_BAD_REQUEST)
         return super().delete(request, *args, **kwargs)
     
 
+#Public Book Search and Borrowing
 
 
 class BookListView(generics.ListAPIView):
