@@ -13,3 +13,5 @@ class CustomUser(AbstractUser):
     
     def is_staff_user(self):
         return self.role == 'staff'
+
+
