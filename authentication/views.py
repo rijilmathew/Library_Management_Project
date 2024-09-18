@@ -2,8 +2,9 @@ from django.shortcuts import render
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
-from .serializers import CustomUserSerializer
-from .models import CustomUser
+from .serializers import CustomUserSerializer,UserProfileSerializer
+from .models import CustomUser,UserProfile
+from rest_framework.permissions import IsAuthenticated
 
 from authentication.serializers import MyTokenObtainPairSerializer
 
@@ -18,4 +19,13 @@ class MyTokenObtainPairView(TokenObtainPairView):
 class RegisterUserView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [AllowAny]  # Allow any user to register
+    permission_classes = [AllowAny] 
+
+
+
+class UserProfileView(generics.RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return UserProfile.objects.get(user=self.request.user)

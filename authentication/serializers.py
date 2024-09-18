@@ -1,6 +1,6 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from authentication.models import CustomUser
+from authentication.models import CustomUser,UserProfile
 from django.contrib.auth.password_validation import validate_password
 
 
@@ -40,6 +40,14 @@ class CustomUserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+    
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'bio', 'profile_picture']
+        
 
 
 
