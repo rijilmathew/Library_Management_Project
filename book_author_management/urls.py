@@ -13,6 +13,7 @@ urlpatterns = [
     path('book/<int:pk>/borrow/', BorrowBookView.as_view(), name='borrow-book'),
     path('book/<int:pk>/return/', ReturnBookView.as_view(), name='return-book'),
     path('my-borrowing/', UserBorrowingHistoryView.as_view(), name='user-borrowing-history'),
+    path('reviews/create/', UserBookReviewCreateView.as_view(), name='create-review'),
    
 ]
 

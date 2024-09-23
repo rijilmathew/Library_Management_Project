@@ -12,9 +12,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         token['user']={
             'userId':user.id,
-            'first_name':user.username,
+            'user_name':user.username,
             'email':user.email,
             'role':user.role,
+            'is_superuser': user.is_superuser,
+
          
         }
         return token

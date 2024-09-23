@@ -1,5 +1,7 @@
 from django.db import models
 from authentication.models import CustomUser
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Avg
 
 # Create your models here.
 
@@ -30,6 +32,11 @@ class Book(models.Model):
         return self.title
     
 
+    def average_rating(self):
+        average = UserBookReview.objects.filter(book=self).aggregate(Avg('rating'))
+        return average['rating__avg'] if average['rating__avg'] is not None else 0.0
+    
+
     
 
 class BorrowingHistory(models.Model):
@@ -43,5 +50,36 @@ class BorrowingHistory(models.Model):
     return_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='borrowed')
 
+
     def __str__(self):
         return f"{self.user.username} borrowed {self.book.title} on {self.borrow_date}"
+    
+
+
+class BorrowPending(models.Model):
+    STATUS_CHOICES = [
+        ('borrowed', 'Borrowed'),
+        ('pending', 'pending'),
+    ]
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    def __str__(self):
+        return self.user
+    
+
+class UserBookReview(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE,related_name='books')
+    review = models.TextField()
+    rating = models.FloatField(validators=[MinValueValidator(1.0), MaxValueValidator(5.0)])
+
+    def __str__(self):
+        return f"{self.user.username}'s review of {self.book.title} (Rating: {self.rating})"
+    
+
+    
+
+
+    
+
