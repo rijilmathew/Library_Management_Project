@@ -2,13 +2,14 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
-from .models import Book, BorrowingHistory,Author,BorrowPending,UserBookReview
+from .models import Book, BorrowingHistory,Author,BorrowPending,UserBookReview,CustomUser
 from .serializers import BookSerializer, BorrowingHistorySerializer,AuthorSerializer,UserBookReviewSerializer
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import BasePermission
+from rest_framework.exceptions import ValidationError
 
 
 
@@ -19,9 +20,6 @@ class IsStaffUser(IsAuthenticated):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.is_staff_user()
     
-class IsBookReturnUser(IsAuthenticated):
-    def has_permission(self, request, view):
-        return super().has_permission(request, view)
 
 class BookListCreateView(generics.ListCreateAPIView):
     queryset = Book.objects.all()
@@ -137,35 +135,44 @@ class UserBorrowingHistoryView(generics.ListAPIView):
         return BorrowingHistory.objects.filter(user=self.request.user)
     
 
-class CanCreateReview(BasePermission):
-    """
-    Custom permission to allow users to create a review only if they have returned the book.
-    """
+# class CanCreateReview(BasePermission):
+#     """
+#     Custom permission to allow users to create a review only if they have returned the book.
+#     """
+#     def has_permission(self, request, view):
+#         # Allow only authenticated users
+#         return request.user.is_authenticated
 
-    def has_permission(self, request, view):
-        # Permission to allow request; general permission check
-        return request.user.is_authenticated
-
-    def has_object_permission(self, request, view, obj):
-        # Check if the user has returned the book before writing a review
-        returned_history = BorrowingHistory.objects.filter(
-            user=request.user, 
-            book=obj.book, 
-            status='returned'
-        ).exists()
-
-        return returned_history
+#     def has_object_permission(self, request, view, obj):
+#         # Check if the user has returned the book before writing a review
+#         book_id = request.data.get('book')  # Get the book ID from the request
+#         returned_history = BorrowingHistory.objects.filter(
+#             user=request.user,
+#             book_id=book_id,  # Check based on book ID
+#             status='returned'
+#         ).exists()
+#         return returned_history
 
 class UserBookReviewCreateView(generics.CreateAPIView):
     queryset = UserBookReview.objects.all()
     serializer_class = UserBookReviewSerializer
-    permission_classes = [IsAuthenticated, CanCreateReview]
-
-    def get_object(self):
-        # Fetch the Book object that the user is reviewing
-        book_id = self.request.data.get('book')
-        return Book.objects.get(id=book_id)
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        book_id = self.request.data.get('book')  # Get the book ID from the request
+        returned_history = BorrowingHistory.objects.filter(
+            user=self.request.user,
+            book_id=book_id,
+            status='returned'
+        ).exists()
+
+        if not returned_history:
+            raise ValidationError("You must return the book before leaving a review.")  # Custom error message
+
+        serializer.save(user=self.request.user)  # Save the review with the authenticated user
+
+
+ 
+    
+
     
